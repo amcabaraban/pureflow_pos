@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const PureFlowApp());
+}
+
+class PureFlowApp extends StatelessWidget {
+  const PureFlowApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'PureFlow POS',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const DashboardScreen(),
+    );
+  }
+}
+
+// Dashboard Screen
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("PureFlow POS Dashboard")),
+      body: GridView.count(
+        padding: const EdgeInsets.all(20),
+        crossAxisCount: 2,
+        children: [
+          _menuCard(context, "New Sale", Icons.point_of_sale, const SalesScreen()),
+          _menuCard(context, "Customers", Icons.people, const Placeholder()),
+          _menuCard(context, "Reports", Icons.bar_chart, const Placeholder()),
+          _menuCard(context, "Settings", Icons.settings, const Placeholder()),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuCard(BuildContext context, String title, IconData icon, Widget screen) {
+    return Card(
+      elevation: 4,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => screen),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 50, color: Colors.blue),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(fontSize: 18)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Sales Screen
+class SalesScreen extends StatefulWidget {
+  const SalesScreen({super.key});
+
+  @override
+  State<SalesScreen> createState() => _SalesScreenState();
+}
+
+class _SalesScreenState extends State<SalesScreen> {
+  String deliveryType = "Pickup";
+  int quantity = 1;
+  double price = 15;
+
+  final Map<String, double> pricing = {
+    "Pickup": 15,
+    "Store Retailer Delivery": 20,
+    "Long Distance Delivery": 25,
+    "Very Long Distance Delivery": 30,
+    "Suki / Bulk Special": 0, // special price to be handled manually
+  };
+
+  double get total => price * quantity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("New Sale")),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const Text(
+              "5-Gallon Round Container",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<String>(
+              value: deliveryType,
+              decoration: const InputDecoration(labelText: "Delivery Type"),
+              items: pricing.keys.map((type) {
+                return DropdownMenuItem(value: type, child: Text(type));
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  deliveryType = value!;
+                  price = pricing[value]!;
+                });
+              },
+            ),
+            const SizedBox(height: 15),
+            TextFormField(
+              initialValue: "1",
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Quantity"),
+              onChanged: (val) {
+                setState(() {
+                  quantity = int.tryParse(val) ?? 1;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+            Text("Price per Gallon: ₱$price",
+                style: const TextStyle(fontSize: 18)),
+            Text("TOTAL: ₱$total",
+                style: const TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50)),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Sale recorded successfully")),
+                );
+              },
+              child: const Text("CONFIRM SALE"),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
